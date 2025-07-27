@@ -1,42 +1,88 @@
-from ArchMusic.utils.help import help_panel
+#
+# Copyright (C) 2021-2023 by ArchBots@Github, < https://github.com/ArchBots >.
+#
+# This file is part of < https://github.com/ArchBots/ArchMusic > project,
+# and is released under the "GNU v3.0 License Agreement".
+# Please see < https://github.com/ArchBots/ArchMusic/blob/master/LICENSE >
+#
+# All rights reserved.
+#
 
-from typing import Union, Dict
+from typing import Union
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-def get_close_button(text: str) -> InlineKeyboardButton:
-    return InlineKeyboardButton(text=text, callback_data="close")
+from ArchMusic import app
 
-def get_back_button(text: str, callback: str = "settingsback_helper") -> InlineKeyboardButton:
-    return InlineKeyboardButton(text=text, callback_data=callback)
 
-def help_panel(localized: Dict[str, str], START: Union[bool, int] = None):
-    help_keys = [
-        "H_B_1", "H_B_2", "H_B_3", "H_B_4",
-        "H_B_5", "H_B_6", "H_B_7", "H_B_8", "H_B_9"
+def help_pannel(_, START: Union[bool, int] = None):
+    """
+    Yardım paneli butonlarını döndürür.
+    START parametresi True ise geri butonu da eklenir.
+    """
+
+    # Son satırdaki kontrol butonları (geri/kapat)
+    control_buttons = [
+        InlineKeyboardButton(text=_["BACK_BUTTON"], callback_data="settingsback_helper"),
+        InlineKeyboardButton(text=_["CLOSEMENU_BUTTON"], callback_data="close"),
+    ] if START else [
+        InlineKeyboardButton(text=_["CLOSEMENU_BUTTON"], callback_data="close")
     ]
 
-    buttons = []
+    # Yardım butonları verisi
+    button_data = [
+        ("H_B_1", "hb1"), ("H_B_2", "hb2"),
+        ("H_B_3", "hb3"), ("H_B_4", "hb4"),
+        ("H_B_5", "hb5"), ("H_B_6", "hb6"),
+        ("H_B_7", "hb7"), ("H_B_8", "hb8"),
+        ("H_B_9", "hb9"),
+    ]
 
-    for i in range(0, len(help_keys), 2):
+    # Butonları 2'li gruplar halinde satırlara yerleştir
+    keyboard = []
+    for i in range(0, len(button_data), 2):
         row = []
         for j in range(2):
-            if i + j < len(help_keys):
-                key = help_keys[i + j]
+            if i + j < len(button_data):
+                text_key, cb_key = button_data[i + j]
                 row.append(
-                    InlineKeyboardButton(
-                        text=localized.get(key, key),
-                        callback_data=f"help_callback {key.lower()}"
-                    )
+                    InlineKeyboardButton(text=_[text_key], callback_data=f"help_callback {cb_key}")
                 )
-        buttons.append(row)
+        keyboard.append(row)
 
-    nav_row = (
+    # Kontrol butonunu ekle
+    keyboard.append(control_buttons)
+
+    return InlineKeyboardMarkup(keyboard)
+
+
+def help_back_markup(_):
+    """
+    Yardım alt menüsünde geri ve kapat butonlarını döndürür.
+    """
+    return InlineKeyboardMarkup(
         [
-            get_back_button(localized.get("BACK_BUTTON", "⬅️ Geri")),
-            get_close_button(localized.get("CLOSEMENU_BUTTON", "❌ Kapat")),
+            [
+                InlineKeyboardButton(
+                    text=_["BACK_BUTTON"], callback_data="settings_back_helper"
+                ),
+                InlineKeyboardButton(
+                    text=_["CLOSE_BUTTON"], callback_data="close"
+                ),
+            ]
         ]
-        if START else [get_close_button(localized.get("CLOSEMENU_BUTTON", "❌ Kapat"))]
     )
 
-    buttons.append(nav_row)
-    return InlineKeyboardMarkup(buttons)
+
+def private_help_panel(_):
+    """
+    Özel mesajlarda gösterilecek yardım butonunu döndürür.
+    Kullanıcıyı botla özelde yardıma yönlendirir.
+    """
+    return [
+        [
+            InlineKeyboardButton(
+                text=_["S_B_1"],
+                url=f"https://t.me/{app.username}?start=help",
+            ),
+        ]
+    ]
