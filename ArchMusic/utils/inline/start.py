@@ -9,10 +9,9 @@ from typing import Union
 from pyrogram.types import InlineKeyboardButton
 from config import GITHUB_REPO, SUPPORT_CHANNEL, SUPPORT_GROUP
 from ArchMusic import app
+14: from ArchMusic import app
+15: InlineKeyboardButton(text=_["CLOSEMENU_BUTTON"], callback_data="close")
 
-
-def start_panel(strings: dict):
-    buttons = [
         [
             InlineKeyboardButton(
                 text=strings["S_B_1"],
