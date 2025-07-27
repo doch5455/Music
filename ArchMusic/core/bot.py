@@ -102,16 +102,14 @@ class ArchMusic(Client):
         if member.status != ChatMemberStatus.ADMINISTRATOR:
             self.logger.error("⚠️ Lütfen log grubunda botu yönetici yapın.")
             sys.exit()
+try:
+    me = await self.get_me()
+    self.username = me.username
+    self.id = me.id
+except Exception as e:
+    self.logger.error(f"❌ Bot başlatılırken bir hata oluştu: {e}")
+    sys.exit()
 
 
 
-        except Exception as e:
-            LOGGER(__name__).error(f"Bot başlatılırken hata oluştu: {e}")
-            sys.exit()
-
-        if get_me.last_name:
-            self.name = get_me.first_name + " " + get_me.last_name
-        else:
-            self.name = get_me.first_name
-
-        LOGGER(__name__).info(f"MusicBot {self.name} olarak başlatıldı")
+        
