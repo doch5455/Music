@@ -1,5 +1,4 @@
 import sys
-
 from pyrogram import Client
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.types import (
@@ -12,7 +11,6 @@ import config
 from ..logging import LOGGER
 
 
-# 🔹 Komutlar: Spotify havası, sade ve net
 PRIVATE_COMMANDS = [
     BotCommand("start", "🌟 Botu başlat ve müzik keyfine başla"),
     BotCommand("yardim", "🧠 Komut rehberini göster"),
@@ -38,13 +36,11 @@ GROUP_COMMANDS = [
 ]
 
 
-# 🔧 Komutları Telegram botuna tanımlama
 async def set_commands(client: Client):
     await client.set_bot_commands(PRIVATE_COMMANDS, scope=BotCommandScopeAllPrivateChats())
     await client.set_bot_commands(GROUP_COMMANDS, scope=BotCommandScopeAllGroupChats())
 
 
-# 🔊 Ana Bot Sınıfı
 class ArchMusic(Client):
     def __init__(self):
         self.logger = LOGGER(__name__)
@@ -77,7 +73,6 @@ class ArchMusic(Client):
             sys.exit()
 
     async def _send_startup_message(self):
-        """🎬 Log grubuna botun aktif olduğunu bildiren mesaj gönder."""
         try:
             await self.send_video(
                 chat_id=config.LOG_GROUP_ID,
@@ -97,19 +92,7 @@ class ArchMusic(Client):
             sys.exit()
 
     async def _check_log_group_permissions(self):
-        """🔐 Botun log grubunda yönetici olup olmadığını kontrol et."""
         member = await self.get_chat_member(config.LOG_GROUP_ID, self.id)
         if member.status != ChatMemberStatus.ADMINISTRATOR:
             self.logger.error("⚠️ Lütfen log grubunda botu yönetici yapın.")
             sys.exit()
-try:
-    me = await self.get_me()
-    self.username = me.username
-    self.id = me.id
-except Exception as e:
-    self.logger.error(f"❌ Bot başlatılırken bir hata oluştu: {e}")
-    sys.exit()
-
-
-
-        
