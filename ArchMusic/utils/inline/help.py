@@ -1,114 +1,66 @@
-#
-# Copyright (C) 2021-2023 by ArchBots@Github, < https://github.com/ArchBots >.
-#
-# This file is part of < https://github.com/ArchBots/ArchMusic > project,
-# and is released under the "GNU v3.0 License Agreement".
-# Please see < https://github.com/ArchBots/ArchMusic/blob/master/LICENSE >
-#
-# All rights reserved.
-#
+# Copyright (C) 2021-2023 by ArchBots
+# License: GNU v3.0 License (see https://github.com/ArchBots/ArchMusic/blob/master/LICENSE)
 
-from typing import Union
-
+from typing import Union, Dict
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
 from ArchMusic import app
 
+# Reusable buttons
+def get_close_button(text: str) -> InlineKeyboardButton:
+    return InlineKeyboardButton(text=text, callback_data="close")
 
-def help_pannel(_, START: Union[bool, int] = None):
-    first = [
-        InlineKeyboardButton(
-            text=_["CLOSEMENU_BUTTON"], callback_data=f"close"
-        )
-    ]
-    second = [
-        InlineKeyboardButton(
-            text=_["BACK_BUTTON"],
-            callback_data=f"settingsback_helper",
-        ),
-        InlineKeyboardButton(
-            text=_["CLOSEMENU_BUTTON"], callback_data=f"close"
-        ),
-    ]
-    mark = second if START else first
-    upl = InlineKeyboardMarkup(
+def get_back_button(text: str, callback: str = "settings_back_helper") -> InlineKeyboardButton:
+    return InlineKeyboardButton(text=text, callback_data=callback)
+
+
+def help_panel(localized: Dict[str, str], START: Union[bool, int] = None):
+    # Define navigation row based on START flag
+    nav_row = [
+        get_back_button(localized["BACK_BUTTON"], "settingsback_helper"),
+        get_close_button(localized["CLOSEMENU_BUTTON"]),
+    ] if START else [get_close_button(localized["CLOSEMENU_BUTTON"])]
+
+    # Help topic buttons
+    help_buttons = InlineKeyboardMarkup([
         [
-            [
-                InlineKeyboardButton(text=_["H_B_1"],callback_data="help_callback hb1",),
-                 InlineKeyboardButton( text=_["H_B_2"],callback_data="help_callback hb2",), 
-            ],
-            [
-            ],
-            [
-                InlineKeyboardButton(
-                    text=_["H_B_3"],
-                    callback_data="help_callback hb3",
-                ),
-                InlineKeyboardButton(
-                    text=_["H_B_4"],
-                    callback_data="help_callback hb4",
-                    
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text=_["H_B_5"],
-                    callback_data="help_callback hb5",
-                ),
-            
-                InlineKeyboardButton(
-                    text=_["H_B_6"],
-                    callback_data="help_callback hb6",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text=_["H_B_7"],
-                    callback_data="help_callback hb7",
-                ),
-                InlineKeyboardButton(
-                    text=_["H_B_8"],
-                    callback_data="help_callback hb8",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text=_["H_B_9"],
-                    callback_data="help_callback hb9",
-                ),
-                
-            ],
-            
-            mark,
-        ]
-    )
-    return upl
-
-
-def help_back_markup(_):
-    upl = InlineKeyboardMarkup(
+            InlineKeyboardButton(text=localized["H_B_1"], callback_data="help_callback hb1"),
+            InlineKeyboardButton(text=localized["H_B_2"], callback_data="help_callback hb2"),
+        ],
         [
-            [
-                InlineKeyboardButton(
-                    text=_["BACK_BUTTON"],
-                    callback_data=f"settings_back_helper",
-                ),
-                InlineKeyboardButton(
-                    text=_["CLOSE_BUTTON"], callback_data=f"close"
-                ),
-            ]
+            InlineKeyboardButton(text=localized["H_B_3"], callback_data="help_callback hb3"),
+            InlineKeyboardButton(text=localized["H_B_4"], callback_data="help_callback hb4"),
+        ],
+        [
+            InlineKeyboardButton(text=localized["H_B_5"], callback_data="help_callback hb5"),
+            InlineKeyboardButton(text=localized["H_B_6"], callback_data="help_callback hb6"),
+        ],
+        [
+            InlineKeyboardButton(text=localized["H_B_7"], callback_data="help_callback hb7"),
+            InlineKeyboardButton(text=localized["H_B_8"], callback_data="help_callback hb8"),
+        ],
+        [
+            InlineKeyboardButton(text=localized["H_B_9"], callback_data="help_callback hb9"),
+        ],
+        nav_row,
+    ])
+    return help_buttons
+
+
+def help_back_markup(localized: Dict[str, str]):
+    return InlineKeyboardMarkup([
+        [
+            get_back_button(localized["BACK_BUTTON"]),
+            get_close_button(localized["CLOSE_BUTTON"]),
         ]
-    )
-    return upl
+    ])
 
 
-def private_help_panel(_):
-    buttons = [
+def private_help_panel(localized: Dict[str, str]):
+    return [
         [
             InlineKeyboardButton(
-                text=_["S_B_1"],
+                text=localized["S_B_1"],
                 url=f"https://t.me/{app.username}?start=help",
-            ),
-        ],
+            )
+        ]
     ]
-    return buttons
