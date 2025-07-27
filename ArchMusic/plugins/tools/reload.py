@@ -9,20 +9,15 @@
 #
 
 import asyncio
-from datetime import datetime
-
 from pyrogram import filters
 from pyrogram.enums import ChatMembersFilter
 from pyrogram.types import CallbackQuery, Message
 
-from config import BANNED_USERS, MUSIC_BOT_NAME, adminlist, lyrical, LOG_GROUP_ID
+from config import BANNED_USERS, MUSIC_BOT_NAME, adminlist, lyrical
 from strings import get_command
 from ArchMusic import app
 from ArchMusic.core.call import ArchMusic
 from ArchMusic.misc import db
 from ArchMusic.utils.database import get_authuser_names, get_cmode
-from ArchMusic.utils.decorators import (ActualAdminCB, AdminActual, language)
-from ArchMusic.utils.formatters import alpha_to_int
-
-### Multi-Lang Commands
-RELOAD_COMMAND = get_comm
+from ArchMusic.utils.decorators import ActualAdminCB, AdminActual, language
+from ArchMusi
