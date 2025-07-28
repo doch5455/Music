@@ -109,18 +109,19 @@ async def on_left_member(client: Client, message: Message):
 async def on_chat_member_update(client: Client, update: ChatMemberUpdated):
     old = update.old_chat_member
     new = update.new_chat_member
-    user = new.user
     chat = update.chat
+
+    # Güvenli kullanıcı bilgisi alımı
+    try:
+        user = new.user
+        mention = user.mention if user else "Bilinmeyen"
+        uid = user.id if user else None
+    except Exception:
+        mention = "Bilinmeyen"
+        uid = None
 
     if old.status == new.status:
         return
-
-    try:
-        mention = user.mention if user else "Bilinmiyor"
-        uid = user.id if user else None
-    except:
-        mention = "Bilinmiyor"
-        uid = None
 
     if new.status == ChatMemberStatus.ADMINISTRATOR:
         text = (
