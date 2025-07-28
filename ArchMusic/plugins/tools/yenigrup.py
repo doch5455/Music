@@ -23,14 +23,33 @@ async def download_user_photo(user_id: int, save_dir="pfps"):
 
 
 # 📝 Log mesajı gönder ve dosyaya kaydet
-async def send_log(text: str, user_id: int = None):
+async def send_log(text: str, user_id: int = None, chat=None):
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Profil fotoğrafı indir
         await download_user_photo(user_id)
 
-        # Gruba mesaj at
+        # Üye sayısı ve grup linki ekle
+        if chat:
+            try:
+                members = await app.get_chat_members_count(chat.id)
+                text += f"\n👥 Üye Sayısı: {members}"
+            except Exception as e:
+                print(f"[UYARI] Üye sayısı alınamadı: {e}")
+
+            try:
+                if chat.username:
+                    link = f"https://t.me/{chat.username}"
+                else:
+                    full_chat = await app.get_chat(chat.id)
+                    link = full_chat.invite_link if full_chat.invite_link else None
+                if link:
+                    text += f"\n🔗 Grup Linki: {link}"
+            except Exception as e:
+                print(f"[UYARI] Grup linki alınamadı: {e}")
+
+        # Mesajı log grubuna gönder
         await app.send_message(LOG_GROUP_ID, f"🕒 `{timestamp}`\n\n{text}")
 
         # Dosyaya yaz
@@ -61,7 +80,7 @@ async def on_new_member(client: Client, message: Message):
                 f"👥 {chat.title} (`{chat.id}`)\n"
                 f"➕ Ekleyen: {ad}"
             )
-        await send_log(text, user.id)
+        await send_log(text, user.id, chat=chat)
 
 
 # ✅ BOT / KULLANICI AYRILDI
@@ -85,7 +104,7 @@ async def on_left_member(client: Client, message: Message):
             f"👥 {chat.title} (`{chat.id}`)\n"
             f"👢 Atan: {ad}"
         )
-    await send_log(text, user.id)
+    await send_log(text, user.id, chat=chat)
 
 
 # ✅ TÜM ÜYELİK DEĞİŞİKLİKLERİ
@@ -132,4 +151,5 @@ async def on_chat_member_update(client: Client, update: ChatMemberUpdated):
     else:
         return
 
-    await send_log(text, user.id)
+    await send_log(text, user.id, chat=chat)
+    
