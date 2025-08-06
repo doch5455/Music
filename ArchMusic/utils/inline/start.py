@@ -1,18 +1,13 @@
+  
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-# Doğru importlar (start_panel ile)
-from ArchMusic.utils.inline import (
-    help_pannel,
-    private_panel,
-    start_panel
-)
-
-BOT_USERNAME = "YourBotUsername"  # Bot kullanıcı adını buraya yaz
+BOT_USERNAME = "YourBotUsername"  # Buraya kendi bot kullanıcı adını yaz
 
 @Client.on_message(filters.command("start") & filters.private)
 async def start_handler(client: Client, message: Message):
-    # Örnek dil sözlüğü (gerçek projede burayı kendi i18n yapınıza göre değiştirin)
+    from ArchMusic.utils.inline.start import start_panel  # fonksiyon içi import, döngüyü önler
+
     _ = {
         "S_B_1": "Yardım",
         "S_B_2": "Ayarlar",
