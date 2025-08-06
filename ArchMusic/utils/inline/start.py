@@ -4,14 +4,7 @@ from config import GITHUB_REPO, SUPPORT_CHANNEL, SUPPORT_GROUP
 from ArchMusic import app
 
 
-# Eğer daha iyi bir UX istersen: başlığı klavyeye eklemek yerine
-# bot.send_message(chat_id, "📌 Menuden istediğin işlemi seç", reply_markup=InlineKeyboardMarkup(buttons))
-# şeklinde mesaj metninde gönder. Bu en temiz görünendir.
-#
-# Aşağıdaki implementasyon ise "başlık butonu"nu klavyeye koyar (tıklanabilir, callback_data='header').
-
-
-def start_pannel(_: dict):
+def start_pannel(_):
     buttons = [
         [
             InlineKeyboardButton(text=f"🟦 {_[ 'S_B_1' ]}", url=f"https://t.me/{app.username}?start=help"),
@@ -19,9 +12,9 @@ def start_pannel(_: dict):
         ]
     ]
 
-    support_buttons = _get_support_buttons(_)
-    if support_buttons:
-        buttons.append(support_buttons)
+    support_row = _get_support_buttons(_)
+    if support_row:
+        buttons.append(support_row)
 
     return buttons
 
@@ -32,30 +25,25 @@ def private_panel(
     OWNER: Union[bool, int] = None,
     header_text: Optional[str] = "📌 Menuden istediğin işlemi seç"
 ):
-    """
-    header_text: Klavyenin en üstüne gelecek başlık metni.
-                 Eğer None verirsen başlık eklenmez.
-                 Not: Klavyedeki başlık butonu tıklanabilir (callback_data='header').
-                 Daha iyi bir görünüm için başlığı mesaj metninde göndermeni öneririm.
-    """
     buttons = []
 
-    # Opsiyonel başlık (klavyede buton olarak)
+    # Opsiyonel başlık satırı (tıklanabilir callback)
     if header_text:
-        # callback_data 'header' olarak bırakıldı; botunda bu callback'i yakalayıp pas geçebilirsin.
-        buttons.append([InlineKeyboardButton(text=header_text, callback_data="header")])
+        buttons.append([
+            InlineKeyboardButton(text=header_text, callback_data="header")
+        ])
 
-    # 1. Satır: Geri butonu (ortada)
+    # 1. Satır: Geri butonu
     buttons.append([
         InlineKeyboardButton(text=f"🔙 {_[ 'S_B_8' ]}", callback_data="settings_back_helper")
     ])
 
-    # 2. Satır: Destek grubu ve kanal (iki sütun)
-    support_buttons = _get_support_buttons(_)
-    if support_buttons:
-        buttons.append(support_buttons)
+    # 2. Satır: Destek grubu & kanal
+    support_row = _get_support_buttons(_)
+    if support_row:
+        buttons.append(support_row)
 
-    # 3. Satır: Grup ekle (ortada)
+    # 3. Satır: Grup ekle
     buttons.append([
         InlineKeyboardButton(
             text=f"🟢 {_[ 'S_B_5' ]}",
@@ -63,7 +51,7 @@ def private_panel(
         )
     ])
 
-    # 4. Satır: GitHub ve Owner (iki sütun)
+    # 4. Satır: GitHub & Owner
     final_row = []
     if GITHUB_REPO:
         final_row.append(
@@ -80,14 +68,8 @@ def private_panel(
 
 
 def _get_support_buttons(_):
-    """Destek butonlarını iki sütun veya tekli olarak döndürür."""
-    buttons = []
+    """Destek butonlarını tek satırda döndürür."""
+    row = []
     if SUPPORT_GROUP:
-        buttons.append(InlineKeyboardButton(text=f"🟩 {_[ 'S_B_3' ]}", url=SUPPORT_GROUP))
-    if SUPPORT_CHANNEL:
-        buttons.append(InlineKeyboardButton(text=f"🟦 {_[ 'S_B_4' ]}", url=SUPPORT_CHANNEL))
-
-    if buttons:
-        # Her zaman bir satır halinde dönüyoruz (tek veya iki buton), böylece hizalama tutarlı olur.
-        return [buttons]
-    return None
+        row.append(InlineKeyboardButton(text=f"🟩 {_[ 'S_B_3' ]}", url=SUPPORT_GROUP))
+    if SUPPORT_CHAN_
