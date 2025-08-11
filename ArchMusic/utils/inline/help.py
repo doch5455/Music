@@ -1,4 +1,3 @@
-
 from typing import Union
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -66,14 +65,24 @@ def help_back_markup(_):
 
 def private_help_panel(_):
     """
-    Özel mesajlarda gösterilecek yardım butonunu döndürür.
+    Özel mesajlarda gösterilecek yardım ve geri butonlarını döndürür.
     Kullanıcıyı botla özelde yardıma yönlendirir.
     """
-    return [
+    return InlineKeyboardMarkup(
         [
-            InlineKeyboardButton(
-                text=_["S_B_1"],
-                url=f"https://t.me/{app.username}?start=help",
-            ),
+            [
+                InlineKeyboardButton(
+                    text=_["S_B_1"],
+                    url=f"https://t.me/{app.username}?start=help",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text=_["BACK_BUTTON"], callback_data="settingsback_helper"
+                ),
+                InlineKeyboardButton(
+                    text=_["CLOSEMENU_BUTTON"], callback_data="close"
+                ),
+            ]
         ]
-    ]
+    )
