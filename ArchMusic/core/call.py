@@ -1,5 +1,4 @@
-#.
-#
+# ==
 
 import asyncio
 from datetime import datetime, timedelta
@@ -51,15 +50,18 @@ from ArchMusic.utils.exceptions import AssistantErr
 from ArchMusic.utils.inline.play import stream_markup, telegram_markup
 from ArchMusic.utils.stream.autoclear import auto_clean
 
+# Otomatik kapanma zamanlayıcıları
 autoend = {}
 counter = {}
-AUTO_END_TIME = 3
+AUTO_END_TIME = 3  # Dakika cinsinden
 
+# Sıfırlama fonksiyonu
 async def _clear_(chat_id: int) -> None:
     db[chat_id] = []
     await remove_active_video_chat(chat_id)
     await remove_active_chat(chat_id)
 
+# Ana Call sınıfı
 class Call(PyTgCalls):
     def __init__(self):
         self.userbot1 = Client(
@@ -102,22 +104,27 @@ class Call(PyTgCalls):
         )
         self.five = PyTgCalls(self.userbot5, cache_duration=100)
 
+    # Akışı durdur
     async def pause_stream(self, chat_id: int) -> None:
         assistant = await group_assistant(self, chat_id)
         await assistant.pause_stream(chat_id)
 
+    # Akışı devam ettir
     async def resume_stream(self, chat_id: int) -> None:
         assistant = await group_assistant(self, chat_id)
         await assistant.resume_stream(chat_id)
 
+    # Sesi kapat
     async def mute_stream(self, chat_id: int) -> None:
         assistant = await group_assistant(self, chat_id)
         await assistant.mute_stream(chat_id)
 
+    # Sesi aç
     async def unmute_stream(self, chat_id: int) -> None:
         assistant = await group_assistant(self, chat_id)
         await assistant.unmute_stream(chat_id)
 
+    # Tamamen durdur ve temizle
     async def stop_stream(self, chat_id: int) -> None:
         assistant = await group_assistant(self, chat_id)
         try:
@@ -126,6 +133,7 @@ class Call(PyTgCalls):
         except Exception:
             pass
 
+    # Zorla durdur
     async def force_stop_stream(self, chat_id: int) -> None:
         assistant = await group_assistant(self, chat_id)
         try:
@@ -140,6 +148,7 @@ class Call(PyTgCalls):
         except Exception:
             pass
 
+    # Bir sonraki parçaya geç
     async def skip_stream(
         self, chat_id: int, link: str, video: Union[bool, str] = None
     ) -> None:
@@ -157,6 +166,7 @@ class Call(PyTgCalls):
         )
         await assistant.change_stream(chat_id, stream)
 
+    # Belirli bir süreye atla (seek)
     async def seek_stream(
         self,
         chat_id: int,
@@ -184,6 +194,7 @@ class Call(PyTgCalls):
         )
         await assistant.change_stream(chat_id, stream)
 
+    # Test amaçlı akış başlat
     async def stream_call(self, link: str) -> None:
         assistant = await group_assistant(self, config.LOG_GROUP_ID)
         await assistant.join_group_call(
@@ -194,6 +205,7 @@ class Call(PyTgCalls):
         await asyncio.sleep(0.5)
         await assistant.leave_group_call(config.LOG_GROUP_ID)
 
+    # Asistanı gruba davet et
     async def join_assistant(self, original_chat_id: int, chat_id: int) -> None:
         language = await get_lang(original_chat_id)
         _ = get_string(language)
@@ -202,9 +214,11 @@ class Call(PyTgCalls):
             try:
                 get = await app.get_chat_member(chat_id, userbot.id)
             except ChatAdminRequired:
-                raise AssistantErr(_["call_1"])
+                raise AssistantErr("⚠️ Botun bu gruba yönetici izinleri yok.")
             if get.status in (ChatMemberStatus.BANNED, ChatMemberStatus.LEFT):
-                raise AssistantErr(_["call_2"].format(userbot.username, userbot.id))
+                raise AssistantErr(
+                    f"❌ Asistan [{userbot.first_name}](tg://user?id={userbot.id}) gruptan atılmış veya ayrılmış."
+                )
         except UserNotParticipant:
             chat = await app.get_chat(chat_id)
             if chat.username:
@@ -213,25 +227,26 @@ class Call(PyTgCalls):
                 except UserAlreadyParticipant:
                     pass
                 except Exception as e:
-                    raise AssistantErr(_["call_3"].format(e))
+                    raise AssistantErr(f"Asistan gruba katılamadı: {e}")
             else:
                 try:
                     invitelink = chat.invite_link
                     if invitelink is None:
                         invitelink = await app.export_chat_invite_link(chat_id)
                 except ChatAdminRequired:
-                    raise AssistantErr(_["call_4"])
+                    raise AssistantErr("Bot davet bağlantısı oluşturamıyor. Lütfen botu yönetici yapın.")
                 except Exception as e:
                     raise AssistantErr(str(e))
 
-                m = await app.send_message(original_chat_id, _["call_5"])
+                m = await app.send_message(original_chat_id, "⏳ Asistan gruba katılıyor, lütfen bekleyin...")
                 if invitelink.startswith("https://t.me/+"):
                     invitelink = invitelink.replace("https://t.me/+", "https://t.me/joinchat/")
                 await asyncio.sleep(3)
                 await userbot.join_chat(invitelink)
                 await asyncio.sleep(4)
-                await m.edit(_["call_6"].format(userbot.name))
+                await m.edit(f"✅ Asistan **{userbot.first_name}** gruba katıldı ve müzik çalmaya hazır!")
 
+    # Gruba katıl ve akışı başlat
     async def join_call(
         self,
         chat_id: int,
@@ -267,24 +282,22 @@ class Call(PyTgCalls):
                 )
             except Exception:
                 raise AssistantErr(
-                    "**Aktif Sesli Sohbet Bulunamadı**\n\n"
-                    "Lütfen grubun sesli sohbetinin etkinleştirildiğinden emin olun. "
-                    "Zaten etkinse, lütfen sonlandırın ve yeniden yeni sesli sohbet başlatın. "
-                    "Sorun devam ederse /yeniden başlatmayı deneyin."
+                    "📢 **Sesli sohbet başlatılmamış veya görünmüyor.**\n\n"
+                    "Lütfen şunları kontrol edin:\n"
+                    "• Grubunuzda sesli sohbet aktif mi?\n"
+                    "• Varsa, sohbeti kapatıp yeniden açmayı deneyin.\n"
+                    "• Sorun devam ederse: /yeniden yazarak botu yeniden başlatmayı deneyin."
                 )
         except AlreadyJoinedError:
             raise AssistantErr(
-                "**Asistan Zaten Sesli Sohbette**\n\n"
-                "Sistemler, asistanın zaten sesli sohbette bulunduğunu tespit etti; "
-                "bu sorun genellikle 2 sorguyu birlikte yürüttüğünüzde ortaya çıkar.\n\n"
-                "Asistan sesli sohbette yoksa lütfen sesli sohbeti sonlandırın ve "
-                "yeni sesli sohbeti yeniden başlatın; sorun devam ederse /yeniden başlatmayı deneyin."
+                "🔄 **Asistan zaten sesli sohbette.**\n\n"
+                "Bu durum genellikle iki komutu aynı anda kullandığınızda olur.\n"
+                "Eğer asistan görünmüyorsa, sesli sohbeti kapatıp yeniden açmayı deneyin."
             )
         except TelegramServerError:
             raise AssistantErr(
-                "**Telegram Sunucu Hatası**\n\n"
-                "Telegram'da bazı dahili sunucu sorunları yaşanıyor. Lütfen tekrar deneyin.\n\n"
-                "Bu sorun devam ederse, sesli sohbetinizi sonlandırıp yeniden başlatın."
+                "⚙️ **Telegram sunucusunda geçici bir hata oluştu.**\n\n"
+                "Lütfen birkaç saniye sonra tekrar deneyin veya sesli sohbeti yeniden başlatın."
             )
 
         await add_active_chat(chat_id)
@@ -298,6 +311,7 @@ class Call(PyTgCalls):
             if users == 1:
                 autoend[chat_id] = datetime.now() + timedelta(minutes=AUTO_END_TIME)
 
+    # Şarkı bittiğinde sıradaki parçaya geç
     async def change_stream(self, client, chat_id: int) -> None:
         check = db.get(chat_id)
         popped = None
@@ -312,6 +326,7 @@ class Call(PyTgCalls):
                 await auto_clean(popped)
             if not check:
                 await _clear_(chat_id)
+                await app.send_message(chat_id, "🎧 Sıra bitti, sesli sohbetten ayrılıyorum.")
                 return await client.leave_group_call(chat_id)
         except Exception:
             try:
@@ -335,7 +350,7 @@ class Call(PyTgCalls):
         if "live_" in queued:
             n, link = await YouTube.video(videoid, True)
             if n == 0:
-                return await app.send_message(original_chat_id, text=_["call_9"])
+                return await app.send_message(original_chat_id, "❌ Canlı yayın başlatılamadı.")
             stream = (
                 AudioVideoPiped(
                     link,
@@ -348,22 +363,16 @@ class Call(PyTgCalls):
             try:
                 await client.change_stream(chat_id, stream)
             except Exception:
-                return await app.send_message(original_chat_id, text=_["call_9"])
-            button = telegram_markup(_, chat_id)
+                return await app.send_message(original_chat_id, "❌ Canlı yayın yüklenemedi.")
             run = await app.send_message(
                 chat_id=original_chat_id,
-                text=_["stream_1"].format(
-                    title,
-                    f"https://t.me/{app.username}?start=info_{videoid}",
-                    check[0]["dur"],
-                    user,
-                ),
+                text=f"🎶 Şimdi çalıyor: **{title}** ⏱️ Süre: {check[0]['dur']} 👤 Ekleyen: {user}",
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
 
         elif "vid_" in queued:
-            mystic = await app.send_message(original_chat_id, _["call_10"])
+            mystic = await app.send_message(original_chat_id, "📥 Video indiriliyor...")
             try:
                 file_path, direct = await YouTube.download(
                     videoid,
@@ -372,7 +381,7 @@ class Call(PyTgCalls):
                     video=True if str(streamtype) == "video" else False,
                 )
             except Exception:
-                return await mystic.edit_text(_["call_9"], disable_web_page_preview=True)
+                return await mystic.edit_text("❌ Video indirilemedi.", disable_web_page_preview=True)
 
             stream = (
                 AudioVideoPiped(
@@ -386,18 +395,12 @@ class Call(PyTgCalls):
             try:
                 await client.change_stream(chat_id, stream)
             except Exception:
-                return await app.send_message(original_chat_id, text=_["call_9"])
+                return await app.send_message(original_chat_id, "❌ Video yüklenemedi.")
 
-            button = stream_markup(_, videoid, chat_id)
             await mystic.delete()
             run = await app.send_message(
                 chat_id=original_chat_id,
-                text=_["stream_1"].format(
-                    title,
-                    f"https://t.me/{app.username}?start=info_{videoid}",
-                    check[0]["dur"],
-                    user,
-                ),
+                text=f"🎶 Şimdi çalıyor: **{title}** ⏱️ Süre: {check[0]['dur']} 👤 Ekleyen: {user}",
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "stream"
@@ -415,16 +418,10 @@ class Call(PyTgCalls):
             try:
                 await client.change_stream(chat_id, stream)
             except Exception:
-                return await app.send_message(original_chat_id, text=_["call_9"])
-            button = telegram_markup(_, chat_id)
+                return await app.send_message(original_chat_id, "❌ Dosya yüklenemedi.")
             run = await app.send_message(
                 chat_id=original_chat_id,
-                text=_["stream_2"].format(
-                    title,
-                    f"https://t.me/{app.username}?start=info_{videoid}",
-                    check[0]["dur"],
-                    user,
-                ),
+                text=f"📂 Yerel dosya çalıyor: **{title}** ⏱️ Süre: {check[0]['dur']} 👤 Ekleyen: {user}",
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
@@ -442,38 +439,31 @@ class Call(PyTgCalls):
             try:
                 await client.change_stream(chat_id, stream)
             except Exception:
-                return await app.send_message(original_chat_id, text=_["call_9"])
+                return await app.send_message(original_chat_id, "❌ Parça yüklenemedi.")
 
             if videoid == "telegram":
-                button = telegram_markup(_, chat_id)
                 run = await app.send_message(
                     original_chat_id,
-                    text=_["stream_3"].format(title, check[0]["dur"], user),
+                    text=f"🎶 Şimdi çalıyor: **{title}** ⏱️ Süre: {check[0]['dur']} 👤 Ekleyen: {user}",
                 )
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "tg"
             elif videoid == "soundcloud":
-                button = telegram_markup(_, chat_id)
                 run = await app.send_message(
                     original_chat_id,
-                    text=_["stream_3"].format(title, check[0]["dur"], user),
+                    text=f"🎶 Şimdi çalıyor: **{title}** ⏱️ Süre: {check[0]['dur']} 👤 Ekleyen: {user}",
                 )
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "tg"
             else:
-                button = stream_markup(_, videoid, chat_id)
                 run = await app.send_message(
                     chat_id=original_chat_id,
-                    text=_["stream_1"].format(
-                        title,
-                        f"https://t.me/{app.username}?start=info_{videoid}",
-                        check[0]["dur"],
-                        user,
-                    ),
+                    text=f"🎶 Şimdi çalıyor: **{title}** ⏱️ Süre: {check[0]['dur']} 👤 Ekleyen: {user}",
                 )
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
 
+    # Ping ölçümü
     async def ping(self) -> str:
         pings = []
         for client in (self.one, self.two, self.three, self.four, self.five):
@@ -487,10 +477,11 @@ class Call(PyTgCalls):
                 pings.append(await client.ping)
             if config.STRING5 and client is self.five:
                 pings.append(await client.ping)
-        return str(round(sum(pings) / len(pings), 3)) if pings else "0"
+        return f"📡 Ortalama gecikme: {round(sum(pings) / len(pings), 3)} ms" if pings else "❌ Bot şu anda aktif değil."
 
+    # Tüm client'ları başlat
     async def start(self) -> None:
-        LOGGER(__name__).info("Starting PyTgCalls Client\n")
+        LOGGER(__name__).info("🎵 ArchMusic bot başlatılıyor...")
         for client, string in (
             (self.one, config.STRING1),
             (self.two, config.STRING2),
@@ -501,6 +492,7 @@ class Call(PyTgCalls):
             if string:
                 await client.start()
 
+    # Olay dinleyicileri
     async def decorators(self) -> None:
         for client in (self.one, self.two, self.three, self.four, self.five):
             if not hasattr(client, "on_kicked"):
@@ -544,4 +536,5 @@ class Call(PyTgCalls):
                         else:
                             autoend[chat_id] = {}
 
+# Ana nesne
 ArchMusic = Call()
