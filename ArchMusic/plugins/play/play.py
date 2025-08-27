@@ -40,68 +40,9 @@ from ArchMusic.utils.stream.stream import stream
 # Command
 PLAY_COMMAND = get_command("PLAY_COMMAND")
 
-# Spam Koruması
 spam_protection = True
 spam_records = {}
-spam_warnings = {}
 
-MAX_REQUESTS = 5      # 5 saniyede en fazla 5 istek
-TIME_WINDOW = 5       # saniye
-MAX_WARNINGS = 2      # 2 uyarıdan sonra bot gruptan ayrılır
-
-          # Spam Kontrol Fonksiyonu
-async def check_spam(message: Message) -> bool:
-    """Kullanıcının spam yapıp yapmadığını kontrol eder.
-    Spam varsa True döner, değilse False döner."""
-    global spam_records, spam_warnings, spam_protection
-
-    if not spam_protection:
-        return False
-
-    user_id = message.from_user.id
-    current_time = time.time()
-
-    # Kullanıcı kayıtlarını güncelle
-    if user_id not in spam_records:
-        spam_records[user_id] = []
-    spam_records[user_id] = [
-        ts for ts in spam_records[user_id] if current_time - ts <= TIME_WINDOW
-    ]
-    spam_records[user_id].append(current_time)
-
-    # Spam kontrolü
-    if len(spam_records[user_id]) >= MAX_REQUESTS:
-        spam_warnings[user_id] = spam_warnings.get(user_id, 0) + 1
-
-        if spam_warnings[user_id] >= MAX_WARNINGS:
-            await message.reply_text(
-                f"🚨 **{message.from_user.mention} spam yapmaya devam ediyor!**\n\n"
-                f"❌ Bot, gruptan ayrılıyor..."
-            )
-            chat = message.chat
-            group_link = f"@{chat.username}" if chat.username else "Gizli"
-            await app.send_message(
-                config.LOG_GROUP_ID,
-                f"🚨 **__SPAM ALGILANDI__** 🚨\n\n"
-                f"👤 **Kullanıcı:** {message.from_user.mention} [`{message.from_user.id}`]\n"
-                f"📌 **Grup:** {message.chat.title}\n"
-                f"🆔 **Grup ID:** `{message.chat.id}`\n"
-                f"🔗 **Grup Linki:** {group_link}\n"
-                f"💬 **Spam Mesajı:** {message.text}\n\n"
-                f"**Durum:** Bot, çoklu spam nedeniyle bu gruptan ayrıldı."
-            )
-            await app.leave_chat(message.chat.id)
-            return True
-        else:
-            await message.reply_text(
-                f"⚠️ **Spam tespit edildi {message.from_user.mention}!**\n"
-                f"Bu senin **{spam_warnings[user_id]}. uyarın**.\n"
-                f"{MAX_WARNINGS} uyarıdan sonra bot gruptan ayrılır!"
-            )
-            return True
-    return False
-
-# Spam toggle komutu (sadece OWNER kullanabilir)
 @app.on_message(filters.command("spam") & filters.user(config.OWNER_ID))
 async def spam_toggle(client, message: Message):
     global spam_protection
@@ -112,7 +53,7 @@ async def spam_toggle(client, message: Message):
     param = message.command[1].lower()
     if param == "on":
         if spam_protection:
-          return await message.reply_text("**Spam koruması zaten açık.** ✅")
+            return await message.reply_text("**Spam koruması zaten açık.** ✅")
         spam_protection = True
         await message.reply_text("**Spam koruması başarıyla etkinleştirildi. 🟢**")
     elif param == "off":
@@ -122,6 +63,12 @@ async def spam_toggle(client, message: Message):
         await message.reply_text("**Spam koruması başarıyla devre dışı bırakıldı. 🔴**")
     else:
         await message.reply_text("**Geçersiz parametre. Kullanım:** `/spam [on/off]`")
+
+@app.on_message(
+    filters.command(PLAY_COMMAND)
+    & filters.group
+    & ~BANNED_USERS
+)
 @PlayWrapper
 async def play_command(
     client,
@@ -134,10 +81,26 @@ async def play_command(
     url,
     fplay,
 ):
-    # Spam kontrolü
-    if await check_spam(message):
-        return
-      
+    global spam_records
+
+    if spam_protection:
+        user_id = message.from_user.id
+        current_time = time.time()
+        if user_id in spam_records:
+            spam_records[user_id].append(current_time)
+            spam_records[user_id] = [timestamp for timestamp in spam_records[user_id] if current_time - timestamp <= 5]
+            if len(spam_records[user_id]) >= 5:
+                await message.reply_text(f"**{message.from_user.mention} kişisinin spam yaptığı tespit edildi!**🚨\n\n**Bot gruptan ayrılıyor...**")
+                chat = message.chat
+                group_link = f"@{chat.username}" if chat.username else "Gizli"
+                await app.send_message(
+                    config.LOG_GROUP_ID,
+                    f"🚨 **__SPAM ALGILANDI__** 🚨\n\n👤 **Kullanıcı:** {message.from_user.mention} [`{message.from_user.id}`]\n📌 **Grup:** {message.chat.title}\n🆔 **Grup ID:** `{message.chat.id}`\n🔗 **Grup Linki:** {group_link}\n💬 **Spam Mesajı:** {message.text}\n\n**Durum:** Bot, spam nedeniyle bu gruptan ayrıldı."
+                )
+                return await app.leave_chat(message.chat.id)
+        else:
+            spam_records[user_id] = [current_time]
+          
     mystic = await message.reply_text(
         _["play_2"].format(channel) if channel else _["play_1"]
     )
