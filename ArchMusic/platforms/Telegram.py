@@ -11,11 +11,15 @@
 import asyncio
 import os
 import time
+import logging
 from datetime import datetime, timedelta
 from typing import Union
+from collections import deque
 
 from pyrogram.types import (InlineKeyboardButton,
                             InlineKeyboardMarkup, Voice)
+from pyrogram import filters
+from pyrogram.types import CallbackQuery
 
 import config
 from config import MUSIC_BOT_NAME, lyrical
@@ -25,6 +29,32 @@ from ..utils.formatters import (convert_bytes, get_readable_time,
                                 seconds_to_min)
 
 downloader = {}
+download_queue = deque()
+MAX_ACTIVE_DOWNLOADS = 10
+
+logging.basicConfig(level=logging.INFO)
+
+
+# 🔥 Kuyrukta bekleyen kullanıcıların gerçek zamanlı ETA güncellemesi
+async def update_queue_messages():
+    while True:
+        active_downloads = list(downloader.values())
+        total_active_eta = sum(active_downloads) if active_downloads else 0
+
+        for pos, (_, message, mystic, fname) in enumerate(download_queue, start=1):
+            # 🔥 Her kullanıcı için tahmini bekleme süresi
+            est_wait = total_active_eta + sum(list(downloader.values())[:pos-1])
+            est_wait_readable = get_readable_time(int(est_wait)) if est_wait else "0 sec"
+            try:
+                await mystic.edit_text(
+                    f"⏳ İndirme kuyruğunda. Sıra: {pos}\nTahmini bekleme süresi: {est_wait_readable}"
+                )
+            except:
+                pass
+        await asyncio.sleep(10)
+
+# 🔥 Kuyruk güncelleme başlat
+asyncio.create_task(update_queue_messages())
 
 
 class TeleAPI:
@@ -62,7 +92,8 @@ class TeleAPI:
                     else "Telegram Video File"
                 )
 
-        except:
+        except Exception as e:
+            logging.error(f"Filename error: {e}")
             file_name = (
                 "Telegram Audio File"
                 if audio
@@ -73,7 +104,8 @@ class TeleAPI:
     async def get_duration(self, file):
         try:
             dur = seconds_to_min(file.duration)
-        except:
+        except Exception as e:
+            logging.error(f"Duration error: {e}")
             dur = "Unknown"
         return dur
 
@@ -93,8 +125,9 @@ class TeleAPI:
                         else "ogg"
                     )
                 )
-            except:
-                file_name = audio.file_unique_id + "." + ".ogg"
+            except Exception as e:
+                logging.error(f"Audio filepath error: {e}")
+                file_name = audio.file_unique_id + ".ogg"
             file_name = os.path.join(
                 os.path.realpath("downloads"), file_name
             )
@@ -105,8 +138,9 @@ class TeleAPI:
                     + "."
                     + (video.file_name.split(".")[-1])
                 )
-            except:
-                file_name = video.file_unique_id + "." + "mp4"
+            except Exception as e:
+                logging.error(f"Video filepath error: {e}")
+                file_name = video.file_unique_id + ".mp4"
             file_name = os.path.join(
                 os.path.realpath("downloads"), file_name
             )
@@ -117,6 +151,15 @@ class TeleAPI:
         speed_counter = {}
         if os.path.exists(fname):
             return True
+
+        # 🔥 Kuyruğa ekleme ve sıra gösterimi
+        if len(downloader) >= MAX_ACTIVE_DOWNLOADS:
+            queue_position = len(download_queue) + 1
+            await mystic.edit_text(
+                f"⏳ İndirme kuyruğa alındı. Sıra: {queue_position}\nTahmini bekleme süresi: hesaplanıyor..."
+            )
+            download_queue.append((_, message, mystic, fname))
+            return False
 
         async def down_load():
             async def progress(current, total):
@@ -159,8 +202,8 @@ class TeleAPI:
 **ETA:** {eta}"""
                     try:
                         await mystic.edit_text(text, reply_markup=upl)
-                    except:
-                        pass
+                    except Exception as e:
+                        logging.error(f"Progress update error: {e}")
                     left_time[
                         message.id
                     ] = datetime.now() + timedelta(seconds=self.sleep)
@@ -174,24 +217,23 @@ class TeleAPI:
                     file_name=fname,
                     progress=progress,
                 )
-                await mystic.edit_text(
-                    "Başarıyla İndirildi. Dosya şimdi işleniyor"
-                )
-                downloader.pop(message.id)
-            except:
-                await mystic.edit_text(_["tg_2"])
+                await mystic.edit_text("✅ Başarıyla İndirildi. Dosya şimdi işleniyor")
 
-        if len(downloader) > 10:
-            timers = []
-            for x in downloader:
-                timers.append(downloader[x])
-            try:
-                low = min(timers)
-                eta = get_readable_time(low)
-            except:
-                eta = "Unknown"
-            await mystic.edit_text(_["tg_1"].format(eta))
-            return False
+                # Dosya otomatik temizleme
+                asyncio.get_event_loop().call_later(
+                    60, lambda: os.remove(fname) if os.path.exists(fname) else None
+                )
+
+                downloader.pop(message.id)
+
+                # Kuyruktaki bir sonraki indirmeyi başlat
+                if download_queue:
+                    next_task = download_queue.popleft()
+                    asyncio.create_task(self.download(*next_task))
+
+            except Exception as e:
+                logging.error(f"Download error: {e}")
+                await mystic.edit_text(_["tg_2"])
 
         task = asyncio.create_task(down_load())
         lyrical[mystic.id] = task
@@ -205,3 +247,15 @@ class TeleAPI:
             return False
         lyrical.pop(mystic.id)
         return True
+
+
+@app.on_callback_query(filters.regex("stop_downloading"))
+async def stop_downloading(_, query: CallbackQuery):
+    task = lyrical.get(query.message.id)
+    if task:
+        task.cancel()
+        lyrical.pop(query.message.id, None)
+        await query.answer("⏹️ İndirme iptal edildi!", show_alert=True)
+        await query.message.edit_text("❌ İndirme kullanıcı tarafından iptal edildi.")
+    else:
+        await query.answer("⚠️ Aktif bir indirme yok!", show_alert=True)
