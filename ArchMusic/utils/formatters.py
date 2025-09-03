@@ -1,121 +1,117 @@
-
-#
-
 from typing import Union
-from pyrogram.types import Message
 
 
-def get_readable_time(seconds: int) -> str:
+def okunabilir_zaman(saniye: int) -> str:
     """
-    Convert seconds into a human-readable time format.
-    Example: 3661 -> "1h:1m:1s"
+    Saniyeyi okunabilir zaman formatına çevirir.
+    Örnek: 3661 -> "1h:1m:1s"
     """
-    count = 0
-    ping_time = ""
-    time_list = []
-    time_suffix_list = ["s", "m", "h", "days"]
+    sayac = 0
+    zaman_str = ""
+    zaman_listesi = []
+    zaman_ekleri = ["s", "m", "h", "gün"]
 
-    while count < 4:
-        count += 1
-        if count < 3:
-            remainder, result = divmod(seconds, 60)
+    while sayac < 4:
+        sayac += 1
+        if sayac < 3:
+            kalan, sonuc = divmod(saniye, 60)
         else:
-            remainder, result = divmod(seconds, 24)
-        if seconds == 0 and remainder == 0:
+            kalan, sonuc = divmod(saniye, 24)
+        if saniye == 0 and kalan == 0:
             break
-        time_list.append(int(result))
-        seconds = int(remainder)
+        zaman_listesi.append(int(sonuc))
+        saniye = int(kalan)
 
-    for i in range(len(time_list)):
-        time_list[i] = str(time_list[i]) + time_suffix_list[i]
+    for i in range(len(zaman_listesi)):
+        zaman_listesi[i] = str(zaman_listesi[i]) + zaman_ekleri[i]
 
-    if len(time_list) == 4:
-        ping_time += time_list.pop() + ", "
+    if len(zaman_listesi) == 4:
+        zaman_str += zaman_listesi.pop() + ", "
 
-    time_list.reverse()
-    ping_time += ":".join(time_list)
-    return ping_time
+    zaman_listesi.reverse()
+    zaman_str += ":".join(zaman_listesi)
+    return zaman_str
 
 
-def convert_bytes(size: float) -> str:
+def bayt_cevir(boyut: float) -> str:
     """
-    Convert bytes into human-readable KiB, MiB, GiB, etc.
-    Example: 1048576 -> "1.00 MiB"
+    Bayt değerini okunabilir KiB, MiB, GiB gibi birimlere çevirir.
+    Örnek: 1048576 -> "1.00 MiB"
     """
-    if not size:
-        return ""
-    power = 1024
-    t_n = 0
-    power_dict = {0: " ", 1: "Ki", 2: "Mi", 3: "Gi", 4: "Ti"}
+    if not boyut:
+        return "0 B"
+    katsayi = 1024
+    seviye = 0
+    birimler = {0: " ", 1: "Ki", 2: "Mi", 3: "Gi", 4: "Ti"}
 
-    while size > power:
-        size /= power
-        t_n += 1
-    return "{:.2f} {}B".format(size, power_dict[t_n])
+    while boyut >= katsayi:
+        boyut /= katsayi
+        seviye += 1
+    return "{:.2f} {}B".format(boyut, birimler[seviye])
 
 
-async def int_to_alpha(user_id: int) -> str:
+def sayiyi_harfle(user_id: int) -> str:
     """
-    Convert integer user_id into alphabet code.
-    Example: 123 -> "bcd"
+    Sayısal kullanıcı ID'sini harf koduna çevirir.
+    Örnek: 123 -> "bcd"
     """
-    alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
-    text = ""
+    alfabe = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+    metin = ""
     user_id = str(user_id)
-    for i in user_id:
-        text += alphabet[int(i)]
-    return text
+    for rakam in user_id:
+        metin += alfabe[int(rakam)]
+    return metin
 
 
-async def alpha_to_int(user_id_alphabet: str) -> int:
+def harfi_sayiya(user_id_harf: str) -> int:
     """
-    Convert alphabet code back into integer user_id.
-    Example: "bcd" -> 123
+    Harf kodunu sayısal kullanıcı ID'sine çevirir.
+    Örnek: "bcd" -> 123
     """
-    alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+    alfabe = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
     user_id = ""
-    for i in user_id_alphabet:
-        index = alphabet.index(i)
+    for harf in user_id_harf:
+        index = alfabe.index(harf)
         user_id += str(index)
     return int(user_id)
 
 
-def time_to_seconds(time: str) -> int:
+def zaman_saniyeye(zaman: str) -> int:
     """
-    Convert time string "hh:mm:ss" into total seconds.
-    Example: "01:02:03" -> 3723
+    "hh:mm:ss" formatındaki zamanı toplam saniyeye çevirir.
+    Örnek: "01:02:03" -> 3723
     """
     return sum(
         int(x) * 60**i
-        for i, x in enumerate(reversed(str(time).split(":")))
+        for i, x in enumerate(reversed(str(zaman).split(":")))
     )
 
 
-def seconds_to_min(seconds: Union[int, None]) -> str:
+def saniye_dakikaya(saniye: Union[int, None]) -> str:
     """
-    Convert seconds into formatted string dd:hh:mm:ss.
-    Example: 3661 -> "01:01:01"
+    Saniyeyi dd:hh:mm:ss formatına çevirir.
+    Örnek: 3661 -> "01:01:01"
     """
-    if seconds is not None:
-        seconds = int(seconds)
-        d, h, m, s = (
-            seconds // (3600 * 24),
-            seconds // 3600 % 24,
-            seconds % 3600 // 60,
-            seconds % 3600 % 60,
+    if saniye is not None:
+        saniye = int(saniye)
+        gun, saat, dakika, saniye_kalan = (
+            saniye // (3600 * 24),
+            saniye // 3600 % 24,
+            saniye % 3600 // 60,
+            saniye % 3600 % 60,
         )
-        if d > 0:
-            return "{:02d}:{:02d}:{:02d}:{:02d}".format(d, h, m, s)
-        elif h > 0:
-            return "{:02d}:{:02d}:{:02d}".format(h, m, s)
-        elif m > 0:
-            return "{:02d}:{:02d}".format(m, s)
-        elif s > 0:
-            return "00:{:02d}".format(s)
+        if gun > 0:
+            return "{:02d}:{:02d}:{:02d}:{:02d}".format(gun, saat, dakika, saniye_kalan)
+        elif saat > 0:
+            return "{:02d}:{:02d}:{:02d}".format(saat, dakika, saniye_kalan)
+        elif dakika > 0:
+            return "{:02d}:{:02d}".format(dakika, saniye_kalan)
+        elif saniye_kalan > 0:
+            return "00:{:02d}".format(saniye_kalan)
     return "-"
 
 
-formats = [
+formatlar = [
     "webm", "mkv", "flv", "vob", "ogv", "ogg", "rrc", "gifv", "mng",
     "mov", "avi", "qt", "wmv", "yuv", "rm", "asf", "amv", "mp4", "m4p",
     "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "svi", "3gp", "3g2",
