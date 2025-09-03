@@ -10,8 +10,8 @@ from ArchMusic.utils.database import (get_cmode, get_lang,
                                        is_served_private_chat)
 from ArchMusic.utils.database.memorydatabase import is_maintenance
 from ArchMusic.utils.inline.playlist import botplaylist_markup
-from ArchMusic.plugins.logs import play_logs  # play_logs fonksiyonunu import et
-import os
+from ArchMusic.plugins.playlist import play_logs  # Gerçek play_logs fonksiyonunu import et
+import time
 
 # ----------------------
 # PlayWrapper Dekoratörü
@@ -80,20 +80,26 @@ def PlayWrapper(command):
         fplay = True if message.command[0][-1] == "e" and await is_active_chat(chat_id) else None
 
         # -------------------
-        # Duration ve FileSize hesaplama
+        # Duration, FileSize, Start/End Time
         # -------------------
         duration = None
         filesize = None
+        start_time = time.time()
+        end_time = None
+
         if url:  # YouTube
             info = await YouTube.get_info(url)
             duration = info.get("duration")  # saniye cinsinden
-            filesize = info.get("filesize")  # byte cinsinden
+            filesize = info.get("filesize")
         elif audio_telegram:
             duration = audio_telegram.duration
             filesize = audio_telegram.file_size
         elif video_telegram:
-            duration = video_telegram.duration if hasattr(video_telegram, "duration") else None
+            duration = getattr(video_telegram, "duration", None)
             filesize = video_telegram.file_size
+
+        if duration:  # Eğer süre varsa end_time hesapla
+            end_time = start_time + duration
 
         requester = message.from_user.id
 
@@ -110,6 +116,8 @@ def PlayWrapper(command):
             fplay,
             duration=duration,
             filesize=filesize,
+            start_time=start_time,
+            end_time=end_time,
             requester=requester,
             *args,
             **kwargs
@@ -132,7 +140,7 @@ async def play_command(client, message, _, chat_id, video, channel, playmode, ur
         streamtype=streamtype,
         duration=kwargs.get("duration"),
         filesize=kwargs.get("filesize"),
-        start_time=None,
-        end_time=None,
+        start_time=kwargs.get("start_time"),
+        end_time=kwargs.get("end_time"),
         requester=kwargs.get("requester")
     )
