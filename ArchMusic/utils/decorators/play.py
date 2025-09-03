@@ -10,8 +10,24 @@ from ArchMusic.utils.database import (get_cmode, get_lang,
                                        is_served_private_chat)
 from ArchMusic.utils.database.memorydatabase import is_maintenance
 from ArchMusic.utils.inline.playlist import botplaylist_markup
-from ArchMusic.plugins.playlist import play_logs  # Gerçek play_logs fonksiyonunu import et
 import time
+
+# ----------------------
+# play_logs stub (yer tutucu)
+# ----------------------
+async def play_logs(message, streamtype, duration=None, filesize=None, start_time=None, end_time=None, requester=None):
+    """
+    Test ve debug amaçlı basit play_logs fonksiyonu.
+    Gerçek ArchMusic play_logs fonksiyonu yoksa bunu kullan.
+    """
+    await message.reply_text(
+        f"Playing {streamtype}...\n"
+        f"Duration: {duration}\n"
+        f"Filesize: {filesize}\n"
+        f"Start: {start_time}\n"
+        f"End: {end_time}\n"
+        f"Requested by: {requester}"
+    )
 
 # ----------------------
 # PlayWrapper Dekoratörü
@@ -79,9 +95,7 @@ def PlayWrapper(command):
         video = True if message.command[0][0] == "v" or "-v" in message.text else None
         fplay = True if message.command[0][-1] == "e" and await is_active_chat(chat_id) else None
 
-        # -------------------
         # Duration, FileSize, Start/End Time
-        # -------------------
         duration = None
         filesize = None
         start_time = time.time()
@@ -89,7 +103,7 @@ def PlayWrapper(command):
 
         if url:  # YouTube
             info = await YouTube.get_info(url)
-            duration = info.get("duration")  # saniye cinsinden
+            duration = info.get("duration")
             filesize = info.get("filesize")
         elif audio_telegram:
             duration = audio_telegram.duration
@@ -98,7 +112,7 @@ def PlayWrapper(command):
             duration = getattr(video_telegram, "duration", None)
             filesize = video_telegram.file_size
 
-        if duration:  # Eğer süre varsa end_time hesapla
+        if duration:
             end_time = start_time + duration
 
         requester = message.from_user.id
@@ -135,12 +149,4 @@ async def play_command(client, message, _, chat_id, video, channel, playmode, ur
     """
     streamtype = "video" if video else "audio"
 
-    return await play_logs(
-        message,
-        streamtype=streamtype,
-        duration=kwargs.get("duration"),
-        filesize=kwargs.get("filesize"),
-        start_time=kwargs.get("start_time"),
-        end_time=kwargs.get("end_time"),
-        requester=kwargs.get("requester")
-    )
+    return await
