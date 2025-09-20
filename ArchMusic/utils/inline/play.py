@@ -50,7 +50,7 @@ def stream_markup_timer(_, videoid, chat_id, played, dur):
             InlineKeyboardButton(text="⏩ +30s", callback_data=f"ADMIN 4|{chat_id}"),
         ],
         [
-            InlineKeyboardButton(text="▶️ Başla", callback_data=f"ADMIN Resume|{chat_id}"),
+            InlineKeyboardButton(text="▶️ Başlat", callback_data=f"ADMIN Resume|{chat_id}"),
             InlineKeyboardButton(text="⏸ Duraklat", callback_data=f"ADMIN Pause|{chat_id}"),
             InlineKeyboardButton(text="⏭ Atlama", callback_data=f"ADMIN Skip|{chat_id}"),
             InlineKeyboardButton(text="🟥 Bitir", callback_data=f"ADMIN Stop|{chat_id}"),
@@ -279,6 +279,7 @@ def panel_markup_2(_, videoid, chat_id):
         ],
     ]
     return buttons
+
 
 
 def panel_markup_3(_, videoid, chat_id):
