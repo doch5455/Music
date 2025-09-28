@@ -72,11 +72,16 @@ async def autoend_checker():
 # Mesaj metni oluşturma fonksiyonu
 def now_playing_text(title: str, duration: str, user: str) -> str:
     return (
-        f"🎶 **Şimdi Çalıyor**\n"
-        f"📌 Parça: {title}\n"
+     f"🎶 **═════ ❀•°❀°•❀ ═════╗
+        🎼   M Ü Z İ K   S H O W 
+             B A Ş L I Y O R   🎼
+        ╚═════ ❀•°❀°•❀ ═════╝*\n"
+       f"📌 Parça: {title}\n"
         f"⏱️ Süre: {duration}\n"
-        f"👤 Ekleyen: {user}"
-    )
+        f"👤 Ekleyen: {user}\n"
+  f"  🌟 Müziğin Ritmini Hisset • Ruhunu Notaya Bırak ✨"
+    )      
+        
 
 # Ana Call sınıfı
 class Call(PyTgCalls):
