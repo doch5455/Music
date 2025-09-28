@@ -226,7 +226,7 @@ queue_4 : "🎻<b> Sıraya Eklendi **#{0} \n\n<🎼**Parça:** {1}\n🧬 **Süre
 queue_5 : "**Sırada Sadece Bir Parça Var**, **Lütfen Biraz Daha Parça Ekleyin.**"
 
 # All Streaming Lines
-"stream_1": "╔═════ ❀•°❀°•❀ ═════╗\n        🎼 <b>  M Ü Z İ K   S H O W                B A Ş L I Y O R  </b> 🎼\n╚═════ ❀•°❀°•❀ ═════╝\n\n🧬 <b>Parça :</b> {0}\n⏳ <b>Süre :</b> {2}\n👁‍🗨️ <b>Dinleyici :</b> {3}\n\n🌟 Müziğin Ritmini Hisset • Ruhunu Nota Nota Bırak ✨"
+"stream_1": "╔═════ ❀•°❀°•❀ ═════╗\n        🎼 <b>  M Ü Z İ K   S H O W                    B A Ş L I Y O R  </b> 🎼\n╚═════ ❀•°❀°•❀ ═════╝\n\n🧬 <b>Parça :</b> {0}\n⏳ <b>Süre :</b> {2}\n👁‍🗨️ <b>Dinleyici :</b> {3}\n\n🌟 Müziğin Ritmini Hisset • Ruhunu Notaya Bırak ✨"
 
 stream_2 : "🎵 **<u>Dinleniyor:**</u>\n\n→ **<u>Parça</u>:** __{0}__\n→ **<u>Süre</u>:** __{2}__\n→ **<u>Talep Eden</u>:** __{3}__"
 stream_3 : "🎼 **<u>Şarkı Detayları:**</u>\n\n→ **<u>Şarkı</u>:** __{0}__\n→ **<u>Süre</u>:** __{2}__\n→ **<u>İstek Sahibi</u>:** __{3}__"
