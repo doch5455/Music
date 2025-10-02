@@ -3,19 +3,9 @@ from pyrogram.types import InlineKeyboardButton
 from ArchMusic.utils.formatters import time_to_seconds
 
 
-def get_progress_bar(percentage):
-    """
-    Yüzdeye göre 10 blokluk sade ilerleme çubuğu oluşturur.
-    Sadece dolu bloklar gösterilir (), boş blok yok.
-    """
-    umm = min(math.floor(percentage / 10), 10)
-    filled_blocks = "" * umm
-    return f"{percentage:.0f}% {filled_blocks}"
-
-
 def format_duration(duration):
     """
-    Süreyi dakika: saniye formatında döndürür.
+    Süreyi dakika:saniye formatında döndürür.
     Örn: 125 saniye -> 02:05
     """
     total_seconds = time_to_seconds(duration)
@@ -29,29 +19,16 @@ def format_duration(duration):
 def stream_markup_timer(_, videoid, chat_id, played, dur):
     played_time = format_duration(played)
     total_time = format_duration(dur)
-    played_sec = time_to_seconds(played)
-    duration_sec = time_to_seconds(dur)
-    percentage = (played_sec / duration_sec) * 100 if duration_sec else 0
-    bar = get_progress_bar(percentage)
 
     buttons = [
-        # Başlık
-        
-
-        # Süre barı
-        [InlineKeyboardButton(text=f"{played_time} ❤️ {bar} {total_time}", callback_data="GetTimer")],
-
-        
-
+        # Süre barı (progress bar kaldırıldı)
+        [InlineKeyboardButton(text=f"{played_time} ❤️ {total_time}", callback_data="GetTimer")],
         # Alt satır
         [
-
-        
             InlineKeyboardButton(text="🔮 Kontrol Paneli", callback_data=f"PanelMarkup None|{chat_id}"),
         ],
     ]
     return buttons
-
 
 
 def stream_markup(_, videoid, chat_id):
@@ -63,22 +40,18 @@ def stream_markup(_, videoid, chat_id):
 def telegram_markup_timer(_, chat_id, played, dur):
     played_time = format_duration(played)
     total_time = format_duration(dur)
-    played_sec = time_to_seconds(played)
-    duration_sec = time_to_seconds(dur)
-    percentage = (played_sec / duration_sec) * 100 if duration_sec else 0
-    bar = get_progress_bar(percentage)
 
     buttons = [
-        [InlineKeyboardButton(text=f"{played_time} {bar} {total_time}", callback_data="GetTimer")],
+        [InlineKeyboardButton(text=f"{played_time} ❤️ {total_time}", callback_data="GetTimer")],
         [InlineKeyboardButton(text=_["PL_B_3"], callback_data=f"PanelMarkup None|{chat_id}")],
     ]
-        return buttons
+    return buttons
 
 
 def telegram_markup(_, chat_id):
     buttons = [
         [InlineKeyboardButton(text=_["PL_B_3"], callback_data=f"PanelMarkup None|{chat_id}")],
-          ]
+    ]
     return buttons
 
 
@@ -96,7 +69,7 @@ def track_markup(_, videoid, user_id, channel, fplay):
                 callback_data=f"MusicStream {videoid}|{user_id}|v|{channel}|{fplay}",
             ),
         ],
-]
+    ]
     return buttons
 
 
@@ -111,9 +84,8 @@ def playlist_markup(_, videoid, user_id, ptype, channel, fplay):
                 text=_["P_B_2"],
                 callback_data=f"YukkiPlaylists {videoid}|{user_id}|{ptype}|v|{channel}|{fplay}",
             ),
-
         ],
-]
+    ]
     return buttons
 
 
@@ -124,7 +96,9 @@ def livestream_markup(_, videoid, user_id, mode, channel, fplay):
                 text=_["P_B_3"],
                 callback_data=f"LiveStream {videoid}|{user_id}|{mode}|{channel}|{fplay}",
             ),
-            InlineKeyboardButton return buttons
+        ],
+    ]
+    return buttons
 
 
 # ---------- Slider ----------
