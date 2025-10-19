@@ -228,7 +228,7 @@ PING_IMG_URL = getenv(
 
     "PING_IMG_URL",
 
-    "assets/Ping.jpeg",
+    "",
 
 )
 
@@ -390,7 +390,7 @@ if GITHUB_REPO:
 
 if PING_IMG_URL:
 
-    if PING_IMG_URL != "assets/Ping.jpeg":
+    if PING_IMG_URL != "":
 
         if not re.match("(?:http|https)://", PING_IMG_URL):
 
