@@ -36,7 +36,7 @@ def progress_bar(played, total):
 # ───────────────────────────────
 def stream_markup_timer(_, videoid, chat_id, played, dur):
     buttons = [
-        [InlineKeyboardButton("🌌  ᴅᴜʏᴜʀᴜ 🌌", url="")],
+        [InlineKeyboardButton("🌌  ᴅᴜʏᴜʀᴜ 🌌", url="https://t.me/Hebunbots")],
         [InlineKeyboardButton(text=progress_bar(played, dur), callback_data="nonclickable")],
         [
             InlineKeyboardButton("⏮", callback_data=f"ADMIN 1|{chat_id}"),
