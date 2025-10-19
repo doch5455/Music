@@ -1,89 +1,60 @@
+# Copyright (C) 2025 by Alexa_Help @ Github, < https://github.com/TheTeamAlexa >
+# Subscribe On YT < Jankari Ki Duniya >. All rights reserved. © Alexa © Yukki.
+
+"""
+TheTeamAlexa is a project of Telegram bots with variety of purposes.
+Copyright (c) 2021 ~ Present Team Alexa <https://github.com/TheTeamAlexa>
+
+This program is free software: you can redistribute it and can modify
+as you want or you can collabe if you have new ideas.
+"""
+
+
 import asyncio
 import speedtest
-import time
 from pyrogram import filters
-from pyrogram.types import Message
+from strings import get_command
 from ArchMusic import app
-from ArchMusic.utils.decorators.language import language
+from ArchMusic.misc import SUDOERS
 
-# SUDOERS: Botun izinli kullanıcılarının Telegram ID'lerini buraya ekle
-SUDOERS = [123456789]  # Örnek: kendi Telegram ID'nizi buraya yazın
+# Commands
+SPEEDTEST_COMMAND = get_command("SPEEDTEST_COMMAND")
 
-def format_speed(bps):
-    """Bps cinsinden hızı Mbps olarak döner"""
-    return f"{bps / 1_000_000:.2f} Mbps"
 
-def progress_bar(percentage, length=20):
-    """Yüzdeye göre ASCII ilerleme çubuğu oluşturur"""
-    filled_length = int(length * percentage // 100)
-    bar = "█" * filled_length + "─" * (length - filled_length)
-    return f"[{bar}] {percentage:.0f}%"
-
-def run_speedtest_real_time(m):
-    """Download ve upload hızını saniye saniye güncelleyerek test eder"""
+async def testspeed(m):
     try:
         test = speedtest.Speedtest()
         test.get_best_server()
-        m.edit_text("Sunucu seçildi ✅")
-
-        # Download ölçümü
-        m.edit_text("İndirme başlıyor ⏳")
-        download_speed = 0
-        start = time.time()
-        while True:
-            download_speed = test.download()
-            elapsed = time.time() - start
-            percentage = min((elapsed / 10) * 100, 100)
-            bar = progress_bar(percentage)
-            m.edit_text(f"İndirme: {bar} ({format_speed(download_speed)})")
-            if percentage >= 100:
-                break
-            time.sleep(1)
-        m.edit_text(f"İndirme tamamlandı ✅ ({format_speed(download_speed)})")
-
-        # Upload ölçümü
-        m.edit_text("Yükleme başlıyor ⏳")
-        upload_speed = 0
-        start = time.time()
-        while True:
-            upload_speed = test.upload()
-            elapsed = time.time() - start
-            percentage = min((elapsed / 10) * 100, 100)
-            bar = progress_bar(percentage)
-            m.edit_text(f"Yükleme: {bar} ({format_speed(upload_speed)})")
-            if percentage >= 100:
-                break
-            time.sleep(1)
-        m.edit_text(f"Yükleme tamamlandı ✅ ({format_speed(upload_speed)})")
-
-        # Sonuçları paylaş
+        await m.edit("<b>⇆ 𝖱𝗎𝗇𝗇𝗂𝗇𝗀 𝖣𝗈𝗐𝗅𝗈𝖺𝖽 𝖲𝗉𝖾𝖾𝖽𝖳𝖾𝗌𝗍 ...</b>")
+        test.download()
+        await m.edit("<b>⇆ 𝖱𝗎𝗇𝗇𝗂𝗇𝗀 𝖴𝗉𝗅𝗈𝖺𝖽 𝖲𝗉𝖾𝖾𝖽𝖳𝖾𝗌𝗍 ...</b>")
+        test.upload()
         test.results.share()
-        return test.results.dict()
-
+        result = test.results.dict()
+        await m.edit("<b>↻ 𝖲𝗁𝖺𝗋𝗂𝗇𝗀 𝖲𝗉𝖾𝖾𝖽𝖳𝖾𝗌𝗍 𝖱𝖾𝗌𝗎𝗅𝗍𝗌 ...</b>")
     except Exception as e:
-        m.edit_text(f"<code>{e}</code>")
-        return None
+        return await m.edit(str(e))
+    return result
 
-@app.on_message(filters.command(["speedtest", "spt"]) & filters.user(SUDOERS))
-@language
-async def speedtest_function(client, message: Message, _):
-    m = await message.reply_text("Speedtest başlatılıyor... ⏳")
 
-    # Speedtest'i ayrı thread'te çalıştır
-    result = await asyncio.to_thread(run_speedtest_real_time, m)
+@app.on_message(filters.command(SPEEDTEST_COMMAND) & SUDOERS)
+async def speedtest_function(client, message):
+    m = await message.reply_text("» 𝖱𝗎𝗇𝗇𝗂𝗇𝗀 𝖠 𝖲𝗉𝖾𝖾𝖽𝖳𝖾𝗌𝗍 ...")
+    result = await testspeed(m)
+    output = f"""✯ <b>𝖲𝗉𝖾𝖾𝖽𝖳𝖾𝗌𝗍 𝖱𝖾𝗌𝗎𝗅𝗍𝗌</b> ✯
 
-    if not result:
-        return
+<u><b>𝖢𝗅𝗂𝖾𝗇𝗍 :</b></u>
+<b>» 𝖨𝖲𝖯 :</b> {result['client']['isp']}
+<b>» 𝖢𝗈𝗎𝗇𝗍𝗋𝗒 :</b> {result['client']['country']}
 
-    output = f"""
-**ISP:** {result['client']['isp']}
-**Ülke:** {result['client']['country']}
-**Sunucu:** {result['server']['name']} ({result['server']['country']})
-**Sponsor:** {result['server']['sponsor']}
-**Ping:** {result['ping']} ms
-**Latency:** {result['server']['latency']} ms
+<u><b>𝖲𝖾𝗋𝗏𝖾𝗋 :</b></u>
+<b>» 𝖭𝖺𝗆𝖾 :</b> {result['server']['name']}
+<b>» 𝖢𝗈𝗎𝗇𝗍𝗋𝗒 :</b> {result['server']['country']}, {result['server']['cc']}
+<b>» 𝖲𝗉𝗈𝗇𝗌𝗈𝗋 :</b> {result['server']['sponsor']}
+<b>» 𝖫𝖺𝗍𝖾𝗇𝖼𝗒 :</b> {result['server']['latency']} 
+<b>» 𝖯𝗂𝗇𝗀 :</b> {result['ping']}
 """
-
-    await message.reply_photo(photo=result["share"], caption=output)
+    msg = await app.send_photo(
+        chat_id=message.chat.id, photo=result["share"], caption=output
+    )
     await m.delete()
-    
