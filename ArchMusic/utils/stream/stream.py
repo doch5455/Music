@@ -46,6 +46,7 @@ async def stream(
     if streamtype == "playlist":
         msg = f"{_['playlist_16']}\n\n"
         count = 0
+        position = 0
         for search in result:
             if count >= config.PLAYLIST_FETCH_LIMIT:
                 break
@@ -53,9 +54,9 @@ async def stream(
                 title, duration_min, duration_sec, thumbnail, vidid = await YouTube.details(
                     search, False if spotify else True
                 )
-            except:
+            except Exception:
                 continue
-            if duration_min is None or duration_sec > config.DURATION_LIMIT:
+            if not duration_min or (duration_sec and duration_sec > config.DURATION_LIMIT):
                 continue
 
             if await is_active_chat(chat_id):
@@ -70,7 +71,7 @@ async def stream(
                     user_id,
                     "video" if video else "audio",
                 )
-                position = len(db.get(chat_id)) - 1
+                position = len(db.get(chat_id, [])) - 1
                 count += 1
                 msg += f"{count}- {title[:70]}\n"
                 msg += f"{_['playlist_17']} {position}\n\n"
@@ -82,7 +83,7 @@ async def stream(
                     file_path, direct = await YouTube.download(
                         vidid, mystic, video=status, videoid=True
                     )
-                except:
+                except Exception:
                     raise AssistantErr(_["play_16"])
                 await ArchMusic.join_call(
                     chat_id, original_chat_id, file_path, video=status
@@ -108,7 +109,7 @@ async def stream(
                         user_name
                     ),
                 )
-                if db.get(chat_id) and len(db[chat_id]) > 0:
+                if chat_id in db and db[chat_id]:
                     db[chat_id][0]["mystic"] = run
                     db[chat_id][0]["markup"] = "stream"
                 count += 1
@@ -119,11 +120,12 @@ async def stream(
             link = await ArchMusicbin(msg)
             lines = msg.count("\n")
             car = os.linesep.join(msg.split(os.linesep)[:17]) if lines >= 17 else msg
-            carbon = await Carbon.generate(car, randint(100, 10000000))
+            await Carbon.generate(car, randint(100, 10000000))
             upl = close_markup(_)
+            safe_position = max(position, 0)
             return await app.send_message(
                 original_chat_id,
-                text=_["playlist_18"].format(link, position),
+                text=_["playlist_18"].format(link, safe_position),
                 reply_markup=upl,
             )
 
@@ -138,7 +140,7 @@ async def stream(
             file_path, direct = await YouTube.download(
                 vidid, mystic, videoid=True, video=status
             )
-        except:
+        except Exception:
             raise AssistantErr(_["play_16"])
         if await is_active_chat(chat_id):
             await put_queue(
@@ -152,7 +154,7 @@ async def stream(
                 user_id,
                 "video" if video else "audio",
             )
-            position = len(db.get(chat_id)) - 1
+            position = len(db.get(chat_id, [])) - 1
             await app.send_message(
                 original_chat_id,
                 _["queue_4"].format(position, title, duration_min, user_name),
@@ -182,7 +184,7 @@ async def stream(
                     user_name
                 ),
             )
-            if db.get(chat_id) and len(db[chat_id]) > 0:
+            if chat_id in db and db[chat_id]:
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
 
@@ -203,7 +205,7 @@ async def stream(
                 user_id,
                 "audio",
             )
-            position = len(db.get(chat_id)) - 1
+            position = len(db.get(chat_id, [])) - 1
             await app.send_message(
                 original_chat_id,
                 _["queue_4"].format(position, title, duration_min, user_name),
@@ -228,7 +230,7 @@ async def stream(
                 original_chat_id,
                 text=_["stream_3"].format(title, duration_min, user_name),
             )
-            if db.get(chat_id) and len(db[chat_id]) > 0:
+            if chat_id in db and db[chat_id]:
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
 
@@ -251,7 +253,7 @@ async def stream(
                 user_id,
                 "video" if video else "audio",
             )
-            position = len(db.get(chat_id)) - 1
+            position = len(db.get(chat_id, [])) - 1
             await app.send_message(
                 original_chat_id,
                 _["queue_4"].format(position, title, duration_min, user_name),
@@ -278,7 +280,7 @@ async def stream(
                 original_chat_id,
                 text=_["stream_4"].format(title, link, duration_min, user_name),
             )
-            if db.get(chat_id) and len(db[chat_id]) > 0:
+            if chat_id in db and db[chat_id]:
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
 
@@ -301,7 +303,7 @@ async def stream(
                 user_id,
                 "video" if video else "audio",
             )
-            position = len(db.get(chat_id)) - 1
+            position = len(db.get(chat_id, [])) - 1
             await app.send_message(
                 original_chat_id,
                 _["queue_4"].format(position, title, duration_min, user_name),
@@ -310,7 +312,7 @@ async def stream(
             if not forceplay:
                 db[chat_id] = []
             n, file_path = await YouTube.video(link)
-            if n == 0:
+            if not n or n == 0:
                 raise AssistantErr(_["str_3"])
             await ArchMusic.join_call(chat_id, original_chat_id, file_path, video=status)
             await put_queue(
@@ -334,7 +336,7 @@ async def stream(
                     user_name
                 ),
             )
-            if db.get(chat_id) and len(db[chat_id]) > 0:
+            if chat_id in db and db[chat_id]:
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
 
@@ -354,7 +356,7 @@ async def stream(
                 link,
                 "video" if video else "audio",
             )
-            position = len(db.get(chat_id)) - 1
+            position = len(db.get(chat_id, [])) - 1
             await mystic.edit_text(
                 _["queue_4"].format(position, title, duration_min, user_name)
             )
@@ -377,7 +379,10 @@ async def stream(
                 original_chat_id,
                 text=_["stream_2"].format(title, link, duration_min, user_name),
             )
-            if db.get(chat_id) and len(db[chat_id]) > 0:
+            if chat_id in db and db[chat_id]:
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
-            await mystic.delete()
+            try:
+                await mystic.delete()
+            except Exception:
+                pass
