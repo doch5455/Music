@@ -3,7 +3,7 @@ from datetime import datetime
 from pyrogram import filters
 from pyrogram.types import Message
 
-from config import BANNED_USERS, MUSIC_BOT_NAME, LOG_GROUP_ID  # PING_IMG_URL artık gerekli değil
+from config import BANNED_USERS, MUSIC_BOT_NAME, LOG_GROUP_ID
 from strings import get_command
 from ArchMusic import app
 from ArchMusic.core.call import ArchMusic
@@ -30,7 +30,7 @@ def generate_bar(usage: float, length: int = 20) -> str:
 @language
 async def ping_com(client, message: Message, _):
     try:
-        # Ping mesajı (resim olmadan)
+        # Ping mesajı (sadece metin)
         response = await message.reply_text(_["ping_1"])
 
         start_time = datetime.now()
@@ -82,3 +82,4 @@ async def ping_com(client, message: Message, _):
 
     except Exception as e:
         await message.reply_text(f"❌ Ping alınırken bir hata oluştu.\nHata: {e}")
+
