@@ -18,8 +18,7 @@ def generate_bar(usage: float, length: int = 20) -> str:
     """Yüzdelik değere göre dolu ve boş bloklardan oluşan mini çubuk oluşturur."""
     filled_length = int(length * usage / 100)
     empty_length = length - filled_length
-    bar = "█" * filled_length + "░" * empty_length
-    return bar
+    return "█" * filled_length + "░" * empty_length
 
 
 @app.on_message(
@@ -82,4 +81,4 @@ async def ping_com(client, message: Message, _):
 
     except Exception as e:
         await message.reply_text(f"❌ Ping alınırken bir hata oluştu.\nHata: {e}")
-
+        
