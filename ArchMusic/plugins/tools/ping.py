@@ -1,10 +1,9 @@
 from datetime import datetime
-import os
 
 from pyrogram import filters
 from pyrogram.types import Message
 
-from config import BANNED_USERS, MUSIC_BOT_NAME, PING_IMG_URL, LOG_GROUP_ID
+from config import BANNED_USERS, MUSIC_BOT_NAME, LOG_GROUP_ID  # PING_IMG_URL artık gerekli değil
 from strings import get_command
 from ArchMusic import app
 from ArchMusic.core.call import ArchMusic
@@ -31,17 +30,8 @@ def generate_bar(usage: float, length: int = 20) -> str:
 @language
 async def ping_com(client, message: Message, _):
     try:
-        # Ping görseli: Lokal dosya mı yoksa URL mi kontrol et
-        if os.path.exists(PING_IMG_URL):
-            photo_to_send = PING_IMG_URL
-        else:
-            photo_to_send = PING_IMG_URL  # HTTP URL kabul edilir, Telegram File ID de olabilir
-
-        # Kullanıcıya anlık görsel ve mesaj
-        response = await message.reply_photo(
-            photo=photo_to_send,
-            caption=_["ping_1"],
-        )
+        # Ping mesajı (resim olmadan)
+        response = await message.reply_text(_["ping_1"])
 
         start_time = datetime.now()
 
@@ -53,7 +43,7 @@ async def ping_com(client, message: Message, _):
         end_time = datetime.now()
         response_time_ms = (end_time - start_time).microseconds / 1000
 
-        # Şık tablo ve emoji ile ping mesajı
+        # Ping sonucu mesajı
         ping_message = f"""
 **🎵 {MUSIC_BOT_NAME} Ping Sonuçları**
 
@@ -71,7 +61,7 @@ async def ping_com(client, message: Message, _):
         ram_bar = generate_bar(ram)
         disk_bar = generate_bar(disk)
 
-        # Log grubuna görsel ve çubuklarla mesaj
+        # Log grubuna mesaj
         log_text = (
             f"📌 **Ping Log**\n"
             f"---------------------------------\n"
