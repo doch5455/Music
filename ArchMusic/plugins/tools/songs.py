@@ -143,12 +143,12 @@ async def song_helper_cb(client, CallbackQuery, _):
     if stype == "audio":
         done = []
         for x in formats_available:
-            if "audio" in x.get("format", "") and x.get("filesize"):
+            if "audio" in x.get("format", ""):
                 form = x.get("format_note", "Unknown").title()
                 if form in done:
                     continue
                 done.append(form)
-                sz = convert_bytes(x["filesize"])
+                sz = convert_bytes(x.get("filesize")) if x.get("filesize") else "Unknown size"
                 keyboard.row(
                     InlineKeyboardButton(
                         text=f"{form} Audio = {sz}",
@@ -156,15 +156,16 @@ async def song_helper_cb(client, CallbackQuery, _):
                     ),
                 )
     else:
-        filtered_formats = [x for x in formats_available if x.get("filesize") and "video" in x.get("format", "")]
+        # ✅ Burada filesize kontrolü kaldırıldı
+        filtered_formats = [x for x in formats_available if "video" in x.get("format", "")]
         if not filtered_formats:
             return await CallbackQuery.edit_message_text(
                 "Video için kullanılabilir biçimler alınamadı. Lütfen başka bir parça deneyin."
             )
         for x in filtered_formats:
-            sz = convert_bytes(x["filesize"])
-            quality = x.get("format_note") or x.get("height", "Unknown")
-            text = f"{quality}p = {sz}"
+            sz = convert_bytes(x.get("filesize")) if x.get("filesize") else "Unknown size"
+            quality = x.get("format_note") or f"{x.get('height', 'Unknown')}p"
+            text = f"{quality} = {sz}"
             keyboard.row(
                 InlineKeyboardButton(
                     text=text,
