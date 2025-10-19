@@ -1,4 +1,3 @@
-#
 # Copyright (C) 2021-2023 by ArchBots@Github, < https://github.com/ArchBots >.
 #
 # This file is part of < https://github.com/ArchBots/ArchMusic > project,
@@ -17,7 +16,6 @@ from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import (ChatAdminRequired,
                              UserAlreadyParticipant,
                              UserNotParticipant)
-from pyrogram.types import InlineKeyboardMarkup
 from pytgcalls import PyTgCalls, StreamType
 from pytgcalls.exceptions import (AlreadyJoinedError,
                                   NoActiveGroupCall,
@@ -42,8 +40,7 @@ from ArchMusic.utils.database import (add_active_chat,
                                        remove_active_video_chat,
                                        set_loop)
 from ArchMusic.utils.exceptions import AssistantErr
-from ArchMusic.utils.inline.play import (stream_markup,
-                                          telegram_markup)
+from ArchMusic.utils.inline.play import (stream_markup)
 from ArchMusic.utils.stream.autoclear import auto_clean
 
 
@@ -325,6 +322,7 @@ class Call(PyTgCalls):
                     minutes=AUTO_END_TIME
                 )
 
+    # --- stream değişim kısmı aşağıda ---
     async def change_stream(self, client, chat_id):
         check = db.get(chat_id)
         popped = None
@@ -384,8 +382,7 @@ class Call(PyTgCalls):
                         original_chat_id,
                         text=_["call_9"],
                     )
-                img = None
-                button = telegram_markup(_, chat_id)
+                button = stream_markup(_, videoid, chat_id)
                 run = await app.send_message(
                     chat_id=original_chat_id,
                     text=_["stream_1"].format(
@@ -394,10 +391,9 @@ class Call(PyTgCalls):
                         check[0]["dur"],
                         user,
                     ),
-                    
                 )
                 db[chat_id][0]["mystic"] = run
-                db[chat_id][0]["markup"] = "tg"
+                db[chat_id][0]["markup"] = "stream"
             elif "vid_" in queued:
                 mystic = await app.send_message(
                     original_chat_id, _["call_10"]
@@ -434,7 +430,6 @@ class Call(PyTgCalls):
                         original_chat_id,
                         text=_["call_9"],
                     )
-                img = None
                 button = stream_markup(_, videoid, chat_id)
                 await mystic.delete()
                 run = await app.send_message(
@@ -445,7 +440,6 @@ class Call(PyTgCalls):
                         check[0]["dur"],
                         user,
                     ),
-                    
                 )
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
@@ -468,7 +462,7 @@ class Call(PyTgCalls):
                         original_chat_id,
                         text=_["call_9"],
                     )
-                button = telegram_markup(_, chat_id)
+                button = stream_markup(_, videoid, chat_id)
                 run = await app.send_message(
                     chat_id=original_chat_id,
                     text=_["stream_2"].format(
@@ -477,10 +471,9 @@ class Call(PyTgCalls):
                         check[0]["dur"],
                         user,
                     ),
-                    
                 )
                 db[chat_id][0]["mystic"] = run
-                db[chat_id][0]["markup"] = "tg"
+                db[chat_id][0]["markup"] = "stream"
             else:
                 stream = (
                     AudioVideoPiped(
@@ -500,32 +493,8 @@ class Call(PyTgCalls):
                         original_chat_id,
                         text=_["call_9"],
                     )
-                if videoid == "telegram":
-                    button = telegram_markup(_, chat_id)
-                    run = await app.send_message(
-                        original_chat_id,
-                        text=_["stream_3"].format(
-                            title, check[0]["dur"], user
-                        ),
-                        
-                    )
-                    db[chat_id][0]["mystic"] = run
-                    db[chat_id][0]["markup"] = "tg"
-                elif videoid == "soundcloud":
-                    button = telegram_markup(_, chat_id)
-                    run = await app.send_message(
-                        original_chat_id,
-                        text=_["stream_3"].format(
-                            title, check[0]["dur"], user
-                        ),
-                        
-                    )
-                    db[chat_id][0]["mystic"] = run
-                    db[chat_id][0]["markup"] = "tg"
-                else:
-                    img = None
-                    button = stream_markup(_, videoid, chat_id)
-                    run = await app.send_message(
+                button = stream_markup(_, videoid, chat_id)
+                run = await app.send_message(
                     chat_id=original_chat_id,
                     text=_["stream_1"].format(
                       title,
@@ -533,10 +502,9 @@ class Call(PyTgCalls):
                         check[0]["dur"],
                         user,
                     ),
-                    
                 )
-                    db[chat_id][0]["mystic"] = run
-                    db[chat_id][0]["markup"] = "stream"
+                db[chat_id][0]["mystic"] = run
+                db[chat_id][0]["markup"] = "stream"
 
     async def ping(self):
         pings = []
