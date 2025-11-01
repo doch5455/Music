@@ -1,20 +1,17 @@
-#
 # Copyright (C) 2021-2023 by ArchBots@Github, < https://github.com/ArchBots >.
-#
 # This file is part of < https://github.com/ArchBots/ArchMusic > project,
 # and is released under the "GNU v3.0 License Agreement".
 # Please see < https://github.com/ArchBots/ArchMusic/blob/master/LICENSE >
 #
 # All rights reserved.
-#
 
 import random
 import string
 import time
+import asyncio  # 🔹 Animasyon için eklendi
 
 from pyrogram import filters
-from pyrogram.types import (InlineKeyboardMarkup, InputMediaPhoto,
-                            Message)
+from pyrogram.types import (InlineKeyboardMarkup, InputMediaPhoto, Message)
 from pytgcalls.exceptions import NoActiveGroupCall
 
 import config
@@ -36,12 +33,36 @@ from ArchMusic.utils.inline.playlist import botplaylist_markup
 from ArchMusic.utils.logger import play_logs
 from ArchMusic.utils.stream.stream import stream
 
+
 # Komutları strings dosyasından al
 PLAY_COMMAND = get_command("PLAY_COMMAND")
 
 # Spam koruması için global değişkenler
 spam_protection = True
 spam_records = {}
+
+# ────────────────────────────────────────────────
+# 💫 Yükleniyor Animasyonu (Geliştirilmiş Versiyon)
+# ────────────────────────────────────────────────
+async def start_loading_animation(
+    mystic_msg, 
+    text="Yükleniyor", 
+    steps=(10, 20, 30, 40, 50, 60, 70, 80, 90, 100), 
+    delay=0.35
+):
+    """
+    mystic_msg: await message.reply_text() ile oluşturulan mesaj
+    steps: gösterilecek yüzde değerleri
+    delay: her yüzde arasında bekleme süresi (saniye)
+    """
+    async def _run():
+        for p in steps:
+            try:
+                await asyncio.sleep(delay)
+                await mystic_msg.edit_text(f"**{text}... %{p}**")
+            except Exception:
+                break
+    return asyncio.create_task(_run())
 
 
 @app.on_message(filters.command("spam") & filters.user(config.OWNER_ID))
@@ -93,17 +114,11 @@ async def play_command(
     if spam_protection:
         user_id = message.from_user.id
         current_time = time.time()
-        
-        # Kullanıcı daha önce komut kullandıysa
         if user_id in spam_records:
-            # Kullanıcının komut zaman damgalarını listeye ekle
             spam_records[user_id].append(current_time)
-            # Listede son 5 saniyeden eski olan zaman damgalarını temizle
             spam_records[user_id] = [
-                timestamp for timestamp in spam_records[user_id] 
-                if current_time - timestamp <= 5
+                t for t in spam_records[user_id] if current_time - t <= 5
             ]
-            # Kullanıcı 5 saniye içinde 5 veya daha fazla komut gönderdiyse spam olarak işaretle
             if len(spam_records[user_id]) >= 5:
                 await message.reply_text(
                     f"**{message.from_user.mention} kişisinin spam yaptığı tespit edildi!**🚨\n\n"
@@ -123,7 +138,6 @@ async def play_command(
                 )
                 return await app.leave_chat(message.chat.id)
         else:
-            # Kullanıcı ilk defa komut kullanıyorsa, kaydını oluştur
             spam_records[user_id] = [current_time]
     # --- Spam Koruması Bitiş ---
           
@@ -158,16 +172,34 @@ async def play_command(
             )
             
         file_path = await Telegram.get_filepath(audio=audio_telegram)
-        if await Telegram.download(_, message, mystic, file_path):
-            message_link = await Telegram.get_link(message)
-            file_name = await Telegram.get_filename(audio_telegram, audio=True)
-            dur = await Telegram.get_duration(audio_telegram)
-            details = {
-                "title": file_name,
-                "link": message_link,
-                "path": file_path,
-                "dur": dur,
-            }
+
+        # 🔵 YÜKLENİYOR ANİMASYONUNU BAŞLAT
+        loading_task = await start_loading_animation(
+            mystic, text="Yükleniyor", 
+            steps=(10,20,30,40,50,60,70,80,90,100), delay=0.35
+        )
+
+        try:
+            if await Telegram.download(_, message, mystic, file_path):
+                try:
+                    await mystic.edit_text("✅ **İndirme tamamlandı, işleniyor...**")
+                except Exception:
+                    pass
+
+                message_link = await Telegram.get_link(message)
+                file_name = await Telegram.get_filename(audio_telegram, audio=True)
+                dur = await Telegram.get_duration(audio_telegram)
+                details = {
+                    "title": file_name,
+                    "link": message_link,
+                    "path": file_path,
+                    "dur": dur,
+                }
+                # 🔹 Buradan itibaren senin mevcut oynatma işlemin devam eder
+        finally:
+            # 🔹 İş bittiğinde animasyon task'ını durdur
+            if 'loading_task' in locals() and not loading_task.done():
+                loading_task.cancel()
 
             try:
                 await stream(
