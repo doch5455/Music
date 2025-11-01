@@ -382,8 +382,20 @@ def telegram_markup_timer(_, chat_id, played, dur, videoid):
 
 
 
-def stream_markup(_, videoid, chat_id):
+def stream_markup(_, videoid, chat_id, played="00:00", total="03:00"):
+    # 🔹 Basit ilerleme çubuğu
+    parts_p = list(map(int, played.split(":")))
+    parts_t = list(map(int, total.split(":")))
+    played_sec = parts_p[0] * 60 + parts_p[1] if len(parts_p) == 2 else 0
+    total_sec = parts_t[0] * 60 + parts_t[1] if len(parts_t) == 2 else 1
+    ratio = played_sec / total_sec
+    pos = int(ratio * 10)
+    bar = "".join("🔹" if i == pos else "⠂" for i in range(10))
+    bar_text = f"{played}  {bar}  {total}"
+
+    # 🔘 Butonlar
     buttons = [
+        [InlineKeyboardButton(text=bar_text, callback_data="nonclickable")],
         [
             InlineKeyboardButton(
                 text="🩵 𝗞𝗮𝗻𝗮𝗹",
