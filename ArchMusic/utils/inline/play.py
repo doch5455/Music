@@ -1,8 +1,3 @@
-# ===============================================
-# 🌌 Kumsal Bots - Parıltılı Müzik Arayüzü
-# Minimal, modern, sade ve güçlü kontrol sistemi
-# ===============================================
-
 import math
 from pyrogram.types import InlineKeyboardButton
 
@@ -38,11 +33,11 @@ def stream_markup_timer(_, videoid, chat_id, played, dur):
     buttons = [
         [InlineKeyboardButton(text=progress_bar(played, dur), callback_data="nonclickable")],
         [
-            InlineKeyboardButton("⏮", callback_data=f"ADMIN 1|{chat_id}"),
-            InlineKeyboardButton("⏸", callback_data=f"pausevc {chat_id}"),
-            InlineKeyboardButton("▶️", callback_data=f"resumevc {chat_id}"),
-            InlineKeyboardButton("⏭", callback_data=f"ADMIN 2|{chat_id}"),
-            InlineKeyboardButton("⏹", callback_data=f"stopvc {chat_id}"),
+            InlineKeyboardButton("⏮", callback_data=f"ADMIN_1|{chat_id}"),
+            InlineKeyboardButton("⏸", callback_data=f"pausevc|{chat_id}"),
+            InlineKeyboardButton("▶️", callback_data=f"resumevc|{chat_id}"),
+            InlineKeyboardButton("⏭", callback_data=f"ADMIN_2|{chat_id}"),
+            InlineKeyboardButton("⏹", callback_data=f"stopvc|{chat_id}"),
         ],
         [
             InlineKeyboardButton("🗑️ 𝗞𝗮𝗽𝗮𝘁", callback_data="close"),
@@ -59,11 +54,11 @@ def telegram_markup_timer(_, chat_id, played, dur, videoid):
     buttons = [
         [InlineKeyboardButton(text=progress_bar(played, dur), callback_data="nonclickable")],
         [
-            InlineKeyboardButton("⏮", callback_data=f"ADMIN 1|{chat_id}"),
-            InlineKeyboardButton("⏸", callback_data=f"pausevc {chat_id}"),
-            InlineKeyboardButton("▶️", callback_data=f"resumevc {chat_id}"),
-            InlineKeyboardButton("⏭", callback_data=f"ADMIN 2|{chat_id}"),
-            InlineKeyboardButton("⏹", callback_data=f"stopvc {chat_id}"),
+            InlineKeyboardButton("⏮", callback_data=f"ADMIN_1|{chat_id}"),
+            InlineKeyboardButton("⏸", callback_data=f"pausevc|{chat_id}"),
+            InlineKeyboardButton("▶️", callback_data=f"resumevc|{chat_id}"),
+            InlineKeyboardButton("⏭", callback_data=f"ADMIN_2|{chat_id}"),
+            InlineKeyboardButton("⏹", callback_data=f"stopvc|{chat_id}"),
         ],
         [
             InlineKeyboardButton("🗑️ 𝗞𝗮𝗽𝗮𝘁", callback_data="close"),
