@@ -80,7 +80,8 @@ HELP_3 = """<u>🎮 EĞLENCE & OYUN KOMUTLARI 🎮</u>
 🌸 Eğlenmek için tek komut yeter!
 """
 
-HELP_4 = """<u>💠 ETİKET KOMUTLARI 💠</u>
+HELP_4 = """<u>🎮 Etikt KOMUTLARI 🎮</u>
+
 🤖 /chatbot - Yapay zeka çalıştırır
 
 👥 /tag    - Grubunuzdaki tüm üyeleri isimleriyle etiketler
